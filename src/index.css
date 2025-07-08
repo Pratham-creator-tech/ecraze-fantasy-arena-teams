@@ -5,26 +5,34 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 220 20% 4%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 220 20% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 220 20% 6%;
     --popover-foreground: 0 0% 98%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 240 3.7% 15.9%;
+    --primary: 270 91% 65%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 15% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 15% 12%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 190 100% 50%;
+    --accent-foreground: 220 20% 4%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262.1 83.3% 57.8%;
-    --radius: 0.5rem;
+    --border: 240 15% 15%;
+    --input: 240 15% 15%;
+    --ring: 270 91% 65%;
+    --radius: 0.75rem;
+    
+    /* Gaming specific colors */
+    --neon-cyan: 190 100% 50%;
+    --neon-purple: 270 91% 65%;
+    --neon-pink: 320 91% 65%;
+    --neon-green: 120 91% 50%;
+    --gaming-gold: 45 100% 60%;
+    --danger-red: 0 91% 60%;
   }
 }
 
@@ -41,21 +49,68 @@
 
 @layer components {
   .gaming-gradient {
-    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    background: linear-gradient(135deg, hsl(var(--neon-purple)) 0%, hsl(var(--neon-pink)) 100%);
+  }
+  
+  .gaming-gradient-cyan {
+    background: linear-gradient(135deg, hsl(var(--neon-cyan)) 0%, hsl(var(--primary)) 100%);
+  }
+  
+  .gaming-gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--gaming-gold)) 0%, hsl(var(--neon-green)) 100%);
   }
   
   .neon-glow {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 40px hsl(var(--primary) / 0.2);
+  }
+  
+  .neon-glow-cyan {
+    box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.4), 0 0 40px hsl(var(--neon-cyan) / 0.2);
   }
   
   .game-card {
-    background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(22, 33, 62, 0.8));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
+    backdrop-filter: blur(15px);
+    border: 1px solid hsl(var(--primary) / 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+    transition: left 0.5s;
+  }
+  
+  .game-card:hover::before {
+    left: 100%;
   }
   
   .cyber-border {
-    border: 1px solid;
-    border-image: linear-gradient(45deg, #00f5ff, #8b5cf6, #ec4899) 1;
+    border: 2px solid;
+    border-image: linear-gradient(45deg, hsl(var(--neon-cyan)), hsl(var(--primary)), hsl(var(--neon-pink))) 1;
+  }
+  
+  .tournament-card {
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+    border: 1px solid hsl(var(--border));
+    transition: all 0.3s ease;
+  }
+  
+  .tournament-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px hsl(var(--primary) / 0.2);
+  }
+  
+  .wallet-balance {
+    background: linear-gradient(135deg, hsl(var(--gaming-gold)) 0%, hsl(var(--neon-green)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

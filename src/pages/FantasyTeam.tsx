@@ -7,9 +7,11 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Users, DollarSign, Star, TrendingUp } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const FantasyTeam = () => {
   const { gameId } = useParams();
+  const { toast } = useToast();
   const [budget, setBudget] = useState(100000);
   const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
   const [teamName, setTeamName] = useState('');
@@ -172,6 +174,30 @@ const FantasyTeam = () => {
               <Button
                 className="w-full gaming-gradient neon-glow"
                 disabled={selectedPlayers.length !== 5 || !teamName.trim()}
+                onClick={() => {
+                  const entryFee = 10;
+                  const walletBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+                  
+                  if (walletBalance >= entryFee) {
+                    const spendFromWallet = (window as any).spendFromWallet;
+                    if (spendFromWallet && spendFromWallet(entryFee)) {
+                      toast({
+                        title: "Team Created Successfully!",
+                        description: `Your team "${teamName}" has been created for ${getGameTitle(gameId || '')}. Entry fee of $${entryFee} deducted from your wallet.`,
+                      });
+                      // Reset form
+                      setSelectedPlayers([]);
+                      setTeamName('');
+                      setBudget(100000);
+                    }
+                  } else {
+                    toast({
+                      title: "Insufficient Funds",
+                      description: `You need $${entryFee} to create a team. Please add funds to your wallet.`,
+                      variant: "destructive"
+                    });
+                  }
+                }}
               >
                 <Users className="w-4 h-4 mr-2" />
                 Create Team

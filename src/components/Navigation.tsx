@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Trophy, User, LogIn } from 'lucide-react';
+import WalletModal from './WalletModal';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,8 +49,9 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Wallet & Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
+            <WalletModal />
             <Button variant="ghost" size="sm" className="text-gray-300 hover:text-cyan-400">
               <LogIn className="w-4 h-4 mr-2" />
               Login

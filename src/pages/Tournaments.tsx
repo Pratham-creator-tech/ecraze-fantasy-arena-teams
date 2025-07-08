@@ -4,8 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, Trophy, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Tournaments = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const tournaments = [
     {
       id: 1,
@@ -124,10 +128,36 @@ const Tournaments = () => {
                 </div>
                 
                 <div className="flex flex-col space-y-3 lg:ml-8">
-                  <Button className="gaming-gradient neon-glow">
+                  <Button 
+                    className="gaming-gradient neon-glow"
+                    onClick={() => {
+                      const walletBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+                      const entryFee = parseFloat(tournament.entryFee.replace('$', ''));
+                      
+                      if (walletBalance >= entryFee) {
+                        const spendFromWallet = (window as any).spendFromWallet;
+                        if (spendFromWallet && spendFromWallet(entryFee)) {
+                          toast({
+                            title: "Tournament Joined!",
+                            description: `You've successfully joined ${tournament.name}. Entry fee of $${entryFee} deducted from your wallet.`,
+                          });
+                        }
+                      } else {
+                        toast({
+                          title: "Insufficient Funds",
+                          description: `You need $${entryFee} to join this tournament. Please add funds to your wallet.`,
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
                     Join Tournament
                   </Button>
-                  <Button variant="outline" className="border-purple-500/50 hover:bg-purple-500/10">
+                  <Button 
+                    variant="outline" 
+                    className="border-purple-500/50 hover:bg-purple-500/10"
+                    onClick={() => navigate(`/tournament/${tournament.id}`)}
+                  >
                     View Details
                   </Button>
                 </div>
