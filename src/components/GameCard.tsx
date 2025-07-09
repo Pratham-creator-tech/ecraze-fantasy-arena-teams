@@ -102,7 +102,6 @@ const GameCard = ({ id, title, image, players, timeLeft, prizePool, category }: 
           onAuthSuccess={handleAuthSuccess}
         />
       </div>
-      </div>
     </Card>
   );
 };
