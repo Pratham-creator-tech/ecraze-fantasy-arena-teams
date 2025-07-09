@@ -38,22 +38,19 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
+      <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-orange-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/3 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      <div className="relative z-10">
-        <Navigation />
-      </div>
-      
+      <Navigation />
       <HeroSection />
       
       {/* Featured Tournaments Section */}
-      <section className="py-20 px-4 relative z-10">
+      <section className="py-20 px-4 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center p-2 bg-gradient-to-r from-purple-500/10 to-orange-500/10 rounded-full mb-6 border border-purple-500/20">
@@ -75,7 +72,7 @@ const Index = () => {
             {featuredGames.map((game, index) => (
               <div 
                 key={game.id} 
-                className="transform hover:scale-105 transition-all duration-500 particle-animation"
+                className="transform hover:scale-105 transition-all duration-500"
                 style={{ animationDelay: `${index * 200}ms` }}
               >
                 <GameCard {...game} />
@@ -87,7 +84,7 @@ const Index = () => {
             <Link to="/games">
               <Button 
                 size="lg" 
-                className="group bg-gradient-to-r from-purple-600 to-orange-600 hover:from-purple-700 hover:to-orange-700 text-white px-8 py-4 text-lg font-bold rounded-xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 glow-pulse-animation"
+                className="group bg-gradient-to-r from-purple-600 to-orange-600 hover:from-purple-700 hover:to-orange-700 text-white px-8 py-4 text-lg font-bold rounded-xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
               >
                 <Sword className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
                 Enter the Arena
@@ -99,7 +96,7 @@ const Index = () => {
       </section>
       
       {/* Features Section */}
-      <section className="py-20 px-4 relative z-10">
+      <section className="py-20 px-4 relative">
         {/* Decorative Elements */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/5 to-transparent" />
         
@@ -166,9 +163,9 @@ const Index = () => {
       </section>
 
       {/* Live Events Teaser Section */}
-      <section className="py-20 px-4 relative z-10">
+      <section className="py-20 px-4 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/30 via-orange-900/20 to-cyan-900/30 border border-purple-500/30 glass-effect">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900/30 via-orange-900/20 to-cyan-900/30 border border-purple-500/30">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.02%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.02%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
             
@@ -220,7 +217,7 @@ const Index = () => {
       </section>
 
       {/* About Section Preview */}
-      <section className="py-16 px-4 relative z-10">
+      <section className="py-16 px-4 relative">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
@@ -256,7 +253,7 @@ const Index = () => {
             
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-cyan-600/20 rounded-3xl blur-2xl" />
-              <div className="relative glass-effect rounded-3xl border border-purple-500/20 p-8">
+              <div className="relative bg-gradient-to-b from-gray-900/50 to-gray-800/30 backdrop-blur-sm rounded-3xl border border-purple-500/20 p-8">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-cyan-400 mb-2">2.5M+</div>
@@ -281,9 +278,7 @@ const Index = () => {
         </div>
       </section>
 
-      <div className="relative z-10">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 };
