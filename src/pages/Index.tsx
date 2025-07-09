@@ -2,6 +2,7 @@
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import GameCard from '@/components/GameCard';
+import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -117,6 +118,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };

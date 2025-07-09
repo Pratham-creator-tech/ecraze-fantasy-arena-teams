@@ -1,8 +1,11 @@
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Users, Clock, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ContestModal from './ContestModal';
+import AuthModal from './AuthModal';
 
 interface GameCardProps {
   id: string;
@@ -15,6 +18,23 @@ interface GameCardProps {
 }
 
 const GameCard = ({ id, title, image, players, timeLeft, prizePool, category }: GameCardProps) => {
+  const [isContestModalOpen, setIsContestModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handleCreateTeam = () => {
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    if (isAuthenticated) {
+      setIsContestModalOpen(true);
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setIsAuthModalOpen(false);
+    setIsContestModalOpen(true);
+  };
+
   return (
     <Card className="game-card overflow-hidden hover:neon-glow transition-all duration-300 group">
       <div className="relative">
@@ -51,11 +71,25 @@ const GameCard = ({ id, title, image, players, timeLeft, prizePool, category }: 
           </div>
         </div>
         
-        <Link to={`/fantasy/${id}`}>
-          <Button className="w-full gaming-gradient hover:opacity-80 transition-opacity">
-            Create Team
-          </Button>
-        </Link>
+        <Button 
+          onClick={handleCreateTeam}
+          className="w-full gaming-gradient hover:opacity-80 transition-opacity gaming-cursor bullet-animation"
+        >
+          Create Team
+        </Button>
+
+        <ContestModal 
+          isOpen={isContestModalOpen}
+          onClose={() => setIsContestModalOpen(false)}
+          gameId={id}
+          gameTitle={title}
+        />
+
+        <AuthModal 
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
       </div>
     </Card>
   );

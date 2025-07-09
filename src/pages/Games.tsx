@@ -1,6 +1,7 @@
 
 import Navigation from '@/components/Navigation';
 import GameCard from '@/components/GameCard';
+import Footer from '@/components/Footer';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
@@ -39,6 +40,24 @@ const Games = () => {
       category: 'FPS'
     },
     {
+      id: 'pubg',
+      title: 'PUBG Global Championship',
+      image: 'https://images.unsplash.com/photo-1560419015-7c427e8ae5ba?w=400&h=300&fit=crop',
+      players: '2.5M',
+      timeLeft: '1d 8h',
+      prizePool: '$500,000',
+      category: 'Battle Royale'
+    },
+    {
+      id: 'bgmi',
+      title: 'BGMI Pro League',
+      image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&h=300&fit=crop',
+      players: '3.2M',
+      timeLeft: '3d 6h',
+      prizePool: '$200,000',
+      category: 'Battle Royale'
+    },
+    {
       id: 'dota2',
       title: 'Dota 2 The International',
       image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
@@ -64,6 +83,15 @@ const Games = () => {
       timeLeft: '4d 18h',
       prizePool: '$120,000',
       category: 'Sports'
+    },
+    {
+      id: 'fortnite',
+      title: 'Fortnite Championship Series',
+      image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&h=300&fit=crop',
+      players: '1.5M',
+      timeLeft: '5d 2h',
+      prizePool: '$350,000',
+      category: 'Battle Royale'
     }
   ];
 
@@ -136,6 +164,8 @@ const Games = () => {
           </div>
         )}
       </div>
+
+      <Footer />
     </div>
   );
 };

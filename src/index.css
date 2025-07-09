@@ -67,6 +67,39 @@
   .neon-glow-cyan {
     box-shadow: 0 0 20px hsl(var(--neon-cyan) / 0.4), 0 0 40px hsl(var(--neon-cyan) / 0.2);
   }
+
+  /* Gaming Cursor */
+  .gaming-cursor {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2"><path d="M13 7L9 12l-2-2"/></svg>'), auto;
+  }
+
+  /* Bullet Animation */
+  @keyframes bullet-fire {
+    0% { transform: translateX(0) scale(1); opacity: 1; }
+    50% { transform: translateX(20px) scale(1.2); opacity: 0.8; }
+    100% { transform: translateX(40px) scale(0.8); opacity: 0; }
+  }
+
+  .bullet-animation {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bullet-animation::after {
+    content: '●';
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    color: hsl(var(--neon-cyan));
+    font-size: 8px;
+    opacity: 0;
+    animation: bullet-fire 0.5s ease-out;
+  }
+
+  .bullet-animation.fire::after {
+    animation: bullet-fire 0.5s ease-out;
+  }
   
   .game-card {
     background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);

@@ -3,24 +3,34 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Wallet, Plus, CreditCard, DollarSign } from 'lucide-react';
+import { Wallet, Plus, CreditCard, DollarSign, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import KYCModal from './KYCModal';
 
 const WalletModal = () => {
   const [balance, setBalance] = useState(0);
   const [depositAmount, setDepositAmount] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isKYCModalOpen, setIsKYCModalOpen] = useState(false);
+  const [isKYCCompleted, setIsKYCCompleted] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load wallet balance from localStorage
+    // Load wallet balance and KYC status from localStorage
     const savedBalance = localStorage.getItem('walletBalance');
+    const kycStatus = localStorage.getItem('kycCompleted') === 'true';
     if (savedBalance) {
       setBalance(parseFloat(savedBalance));
     }
+    setIsKYCCompleted(kycStatus);
   }, []);
 
   const handleDeposit = () => {
+    if (!isKYCCompleted) {
+      setIsKYCModalOpen(true);
+      return;
+    }
+
     const amount = parseFloat(depositAmount);
     if (amount && amount > 0) {
       const newBalance = balance + amount;
@@ -33,6 +43,11 @@ const WalletModal = () => {
         description: `$${amount.toFixed(2)} has been added to your wallet.`,
       });
     }
+  };
+
+  const handleKYCComplete = () => {
+    setIsKYCCompleted(true);
+    setIsKYCModalOpen(false);
   };
 
   const handleSpend = (amount: number) => {
@@ -73,6 +88,18 @@ const WalletModal = () => {
             <p className="text-3xl font-bold wallet-balance">${balance.toFixed(2)}</p>
           </div>
 
+          {!isKYCCompleted && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+              <div className="flex items-center">
+                <AlertCircle className="w-5 h-5 text-yellow-400 mr-2" />
+                <div>
+                  <p className="text-yellow-400 font-semibold">KYC Verification Required</p>
+                  <p className="text-gray-400 text-sm">Complete KYC to deposit money and participate in contests</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <Label htmlFor="deposit" className="text-sm font-medium">
               Deposit Amount
@@ -92,7 +119,7 @@ const WalletModal = () => {
                 disabled={!depositAmount || parseFloat(depositAmount) <= 0}
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Add
+                {isKYCCompleted ? 'Add' : 'Verify KYC'}
               </Button>
             </div>
           </div>
@@ -117,6 +144,12 @@ const WalletModal = () => {
           </div>
         </div>
       </DialogContent>
+
+      <KYCModal 
+        isOpen={isKYCModalOpen}
+        onClose={() => setIsKYCModalOpen(false)}
+        onKYCComplete={handleKYCComplete}
+      />
     </Dialog>
   );
 };
