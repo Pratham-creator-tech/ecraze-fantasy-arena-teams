@@ -14,75 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      agents: {
-        Row: {
-          api_endpoint: string | null
-          category: string
-          created_at: string
-          demo_video_url: string | null
-          description: string
-          detailed_description: string | null
-          documentation_url: string | null
-          features: string[] | null
-          id: string
-          image_url: string | null
-          monthly_price: number | null
-          name: string
-          price: number
-          rating: number
-          status: string
-          tags: string[] | null
-          total_purchases: number
-          total_ratings: number
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          api_endpoint?: string | null
-          category: string
-          created_at?: string
-          demo_video_url?: string | null
-          description: string
-          detailed_description?: string | null
-          documentation_url?: string | null
-          features?: string[] | null
-          id?: string
-          image_url?: string | null
-          monthly_price?: number | null
-          name: string
-          price?: number
-          rating?: number
-          status?: string
-          tags?: string[] | null
-          total_purchases?: number
-          total_ratings?: number
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          api_endpoint?: string | null
-          category?: string
-          created_at?: string
-          demo_video_url?: string | null
-          description?: string
-          detailed_description?: string | null
-          documentation_url?: string | null
-          features?: string[] | null
-          id?: string
-          image_url?: string | null
-          monthly_price?: number | null
-          name?: string
-          price?: number
-          rating?: number
-          status?: string
-          tags?: string[] | null
-          total_purchases?: number
-          total_ratings?: number
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
