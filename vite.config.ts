@@ -9,10 +9,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react({
-      jsxRuntime: 'automatic',
-      jsxImportSource: 'react'
-    }),
+    react(),
   ].filter(Boolean),
   resolve: {
     alias: {
