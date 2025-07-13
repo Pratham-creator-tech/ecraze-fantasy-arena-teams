@@ -1,1 +1,16 @@
 project_id = "jfilncyheyjuftiklnbb"
+
+[functions.join-contest]
+verify_jwt = true
+
+[functions.deposit-funds]
+verify_jwt = true
+
+[functions.withdraw-funds]
+verify_jwt = true
+
+[functions.distribute-prizes]
+verify_jwt = false
+
+[functions.create-fantasy-team]
+verify_jwt = true

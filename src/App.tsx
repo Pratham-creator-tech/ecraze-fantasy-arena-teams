@@ -11,6 +11,7 @@ import Tournaments from "./pages/Tournaments";
 import TournamentDetails from "./pages/TournamentDetails";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./components/AuthPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/games" element={<Games />} />
           <Route path="/fantasy/:gameId" element={<FantasyTeam />} />
           <Route path="/tournaments" element={<Tournaments />} />
