@@ -5,27 +5,51 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Wallet, Plus, CreditCard, DollarSign, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '@supabase/supabase-js';
 import KYCModal from './KYCModal';
 
-const WalletModal = () => {
+interface WalletModalProps {
+  user: User;
+}
+
+const WalletModal = ({ user }: WalletModalProps) => {
   const [balance, setBalance] = useState(0);
   const [depositAmount, setDepositAmount] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isKYCModalOpen, setIsKYCModalOpen] = useState(false);
   const [isKYCCompleted, setIsKYCCompleted] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load wallet balance and KYC status from localStorage
-    const savedBalance = localStorage.getItem('walletBalance');
-    const kycStatus = localStorage.getItem('kycCompleted') === 'true';
-    if (savedBalance) {
-      setBalance(parseFloat(savedBalance));
+    if (user) {
+      loadUserProfile();
     }
-    setIsKYCCompleted(kycStatus);
-  }, []);
+  }, [user]);
 
-  const handleDeposit = () => {
+  const loadUserProfile = async () => {
+    try {
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      setProfile(profileData);
+      setBalance(profileData?.wallet_balance || 0);
+      setIsKYCCompleted(profileData?.kyc_verified || false);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
+  };
+
+  const handleDeposit = async () => {
     if (!isKYCCompleted) {
       setIsKYCModalOpen(true);
       return;
@@ -33,29 +57,83 @@ const WalletModal = () => {
 
     const amount = parseFloat(depositAmount);
     if (amount && amount > 0) {
-      const newBalance = balance + amount;
-      setBalance(newBalance);
-      localStorage.setItem('walletBalance', newBalance.toString());
-      setDepositAmount('');
-      setIsOpen(false);
-      toast({
-        title: "Deposit Successful",
-        description: `$${amount.toFixed(2)} has been added to your wallet.`,
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('deposit-funds', {
+          body: { amount }
+        });
+
+        if (error) {
+          toast({
+            title: "Deposit failed",
+            description: error.message,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Reload profile to get updated balance
+        await loadUserProfile();
+        setDepositAmount('');
+        setIsOpen(false);
+        
+        toast({
+          title: "Deposit Successful",
+          description: `$${amount.toFixed(2)} has been added to your wallet.`,
+        });
+      } catch (error: any) {
+        toast({
+          title: "Deposit failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
     }
   };
 
-  const handleKYCComplete = () => {
-    setIsKYCCompleted(true);
-    setIsKYCModalOpen(false);
+  const handleKYCComplete = async () => {
+    // Update profile in database
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ kyc_verified: true })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating KYC status:', error);
+        return;
+      }
+
+      setIsKYCCompleted(true);
+      setIsKYCModalOpen(false);
+      await loadUserProfile();
+    } catch (error) {
+      console.error('Error updating KYC status:', error);
+    }
   };
 
-  const handleSpend = (amount: number) => {
+  const handleSpend = async (amount: number) => {
     if (balance >= amount) {
-      const newBalance = balance - amount;
-      setBalance(newBalance);
-      localStorage.setItem('walletBalance', newBalance.toString());
-      return true;
+      try {
+        // This would typically be handled by the contest joining logic
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            wallet_balance: balance - amount 
+          })
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error updating wallet balance:', error);
+          return false;
+        }
+
+        const newBalance = balance - amount;
+        setBalance(newBalance);
+        return true;
+      } catch (error) {
+        console.error('Error spending from wallet:', error);
+        return false;
+      }
     }
     return false;
   };

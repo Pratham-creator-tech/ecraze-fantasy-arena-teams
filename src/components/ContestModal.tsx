@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Trophy, Users, DollarSign, Clock, Target, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Contest {
   id: string;
@@ -28,106 +29,135 @@ interface ContestModalProps {
 }
 
 const ContestModal = ({ isOpen, onClose, gameId, gameTitle }: ContestModalProps) => {
-  const [selectedContest, setSelectedContest] = useState<Contest | null>(null);
+  const [selectedContest, setSelectedContest] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [contests, setContests] = useState<any[]>([]);
+  const [myContests, setMyContests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const contests: Contest[] = [
-    {
-      id: '1',
-      name: 'Mega Contest',
-      entryFee: 25,
-      prizePool: 100000,
-      maxParticipants: 10000,
-      currentParticipants: 7845,
-      timeLeft: '2h 45m',
-      difficulty: 'Expert',
-      type: 'Multi Entry'
-    },
-    {
-      id: '2', 
-      name: 'Beginner Friendly',
-      entryFee: 5,
-      prizePool: 5000,
-      maxParticipants: 1000,
-      currentParticipants: 234,
-      timeLeft: '4h 12m',
-      difficulty: 'Beginner',
-      type: 'Single Entry'
-    },
-    {
-      id: '3',
-      name: 'Head to Head',
-      entryFee: 10,
-      prizePool: 18,
-      maxParticipants: 2,
-      currentParticipants: 1,
-      timeLeft: '1h 30m',
-      difficulty: 'Pro',
-      type: 'Head to Head'
-    },
-    {
-      id: '4',
-      name: 'Practice Contest',
-      entryFee: 0,
-      prizePool: 0,
-      maxParticipants: 500,
-      currentParticipants: 67,
-      timeLeft: '6h 00m',
-      difficulty: 'Beginner',
-      type: 'Multi Entry'
+  useEffect(() => {
+    if (isOpen) {
+      loadContests();
+      loadMyContests();
     }
-  ];
+  }, [isOpen, gameId]);
 
-  const myContests = [
-    {
-      id: 'mc1',
-      name: 'Mega Contest',
-      rank: 245,
-      totalParticipants: 7845,
-      points: 127.5,
-      prizeWon: 0,
-      status: 'Live'
-    },
-    {
-      id: 'mc2',
-      name: 'Beginner Friendly',
-      rank: 12,
-      totalParticipants: 1000,
-      points: 89.2,
-      prizeWon: 150,
-      status: 'Completed'
+  const loadContests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contests')
+        .select('*')
+        .eq('game_id', gameId)
+        .eq('status', 'open');
+
+      if (error) {
+        console.error('Error loading contests:', error);
+        return;
+      }
+
+      setContests(data || []);
+    } catch (error) {
+      console.error('Error loading contests:', error);
     }
-  ];
+  };
 
-  const handleJoinContest = (contest: Contest) => {
+  const loadMyContests = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('contest_entries')
+        .select(`
+          *,
+          contests (
+            name,
+            game_id
+          ),
+          fantasy_teams (
+            team_name,
+            total_points,
+            rank
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error loading my contests:', error);
+        return;
+      }
+
+      setMyContests(data || []);
+    } catch (error) {
+      console.error('Error loading my contests:', error);
+    }
+  };
+
+  const handleJoinContest = (contest: any) => {
     setSelectedContest(contest);
     setShowConfirmation(true);
   };
 
-  const confirmJoinContest = () => {
+  const confirmJoinContest = async () => {
     if (!selectedContest) return;
+    setLoading(true);
 
-    const walletBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
-    
-    if (walletBalance >= selectedContest.entryFee) {
-      const spendFromWallet = (window as any).spendFromWallet;
-      if (spendFromWallet && spendFromWallet(selectedContest.entryFee)) {
+    try {
+      // First create a fantasy team, then join the contest
+      const { data: teamData, error: teamError } = await supabase.functions.invoke('create-fantasy-team', {
+        body: { 
+          contest_id: selectedContest.id,
+          team_name: `Team ${Date.now()}` // Simple team name for now
+        }
+      });
+
+      if (teamError) {
         toast({
-          title: "Contest Joined!",
-          description: `You've successfully joined "${selectedContest.name}". Entry fee of $${selectedContest.entryFee} deducted.`,
+          title: "Failed to create team",
+          description: teamError.message,
+          variant: "destructive"
         });
-        setShowConfirmation(false);
-        onClose();
+        return;
       }
-    } else {
+
+      // Join the contest
+      const { data, error } = await supabase.functions.invoke('join-contest', {
+        body: { 
+          contest_id: selectedContest.id,
+          fantasy_team_id: teamData.team_id
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Failed to join contest",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
-        title: "Insufficient Funds",
-        description: `You need $${selectedContest.entryFee} to join this contest. Please add funds to your wallet.`,
+        title: "Contest Joined!",
+        description: `You've successfully joined "${selectedContest.name}". Entry fee of $${selectedContest.entry_fee || selectedContest.entryFee} deducted.`,
+      });
+      
+      setShowConfirmation(false);
+      onClose();
+      
+      // Reload data
+      loadContests();
+      loadMyContests();
+    } catch (error: any) {
+      toast({
+        title: "Error joining contest",
+        description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-    setShowConfirmation(false);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -184,19 +214,19 @@ const ContestModal = ({ isOpen, onClose, gameId, gameTitle }: ContestModalProps)
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div className="flex items-center text-gray-300">
                             <DollarSign className="w-4 h-4 mr-1" />
-                            <span>Entry: ${contest.entryFee}</span>
+                            <span>Entry: ${contest.entry_fee}</span>
                           </div>
                           <div className="flex items-center text-yellow-400">
                             <Trophy className="w-4 h-4 mr-1" />
-                            <span>Prize: ${contest.prizePool.toLocaleString()}</span>
+                            <span>Prize: ${contest.prize_pool?.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center text-gray-300">
                             <Users className="w-4 h-4 mr-1" />
-                            <span>{contest.currentParticipants}/{contest.maxParticipants}</span>
+                            <span>{contest.current_participants}/{contest.max_participants}</span>
                           </div>
                           <div className="flex items-center text-gray-300">
                             <Clock className="w-4 h-4 mr-1" />
-                            <span>{contest.timeLeft}</span>
+                            <span>Deadline: {new Date(contest.deadline).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
@@ -205,9 +235,9 @@ const ContestModal = ({ isOpen, onClose, gameId, gameTitle }: ContestModalProps)
                         <Button
                           onClick={() => handleJoinContest(contest)}
                           className="gaming-gradient neon-glow"
-                          disabled={contest.currentParticipants >= contest.maxParticipants}
+                          disabled={contest.current_participants >= contest.max_participants}
                         >
-                          {contest.entryFee === 0 ? 'Join Free' : `Join $${contest.entryFee}`}
+                          {contest.entry_fee === 0 ? 'Join Free' : `Join $${contest.entry_fee}`}
                         </Button>
                       </div>
                     </div>

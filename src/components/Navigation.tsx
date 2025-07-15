@@ -1,38 +1,76 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Trophy, User, LogIn, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import WalletModal from './WalletModal';
-import AuthModal from './AuthModal';
+import { useToast } from '@/hooks/use-toast';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated') === 'true';
-    const email = localStorage.getItem('userEmail') || '';
-    setIsAuthenticated(authStatus);
-    setUserEmail(email);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        setProfile(profileData);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    setIsAuthenticated(false);
-    setUserEmail('');
-  };
-
-  const handleAuthSuccess = () => {
-    const authStatus = localStorage.getItem('isAuthenticated') === 'true';
-    const email = localStorage.getItem('userEmail') || '';
-    setIsAuthenticated(authStatus);
-    setUserEmail(email);
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Signed out successfully",
+        description: "Come back soon!",
+      });
+      navigate('/');
+    }
   };
 
   const navItems = [
@@ -77,10 +115,10 @@ const Navigation = () => {
 
           {/* Wallet & Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            {isAuthenticated && <WalletModal />}
-            {isAuthenticated ? (
+            {user && <WalletModal user={user} />}
+            {user ? (
               <>
-                <span className="text-sm text-gray-300">Welcome, {userEmail.split('@')[0]}</span>
+                <span className="text-sm text-gray-300">Welcome, {profile?.username || user.email?.split('@')[0]}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-300 hover:text-cyan-400">
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
@@ -88,14 +126,18 @@ const Navigation = () => {
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" onClick={() => setIsAuthModalOpen(true)} className="text-gray-300 hover:text-cyan-400">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </Button>
-                <Button size="sm" onClick={() => setIsAuthModalOpen(true)} className="gaming-gradient neon-glow">
-                  <User className="w-4 h-4 mr-2" />
-                  Sign Up
-                </Button>
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-cyan-400">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="gaming-gradient neon-glow">
+                    <User className="w-4 h-4 mr-2" />
+                    Sign Up
+                  </Button>
+                </Link>
               </>
             )}
           </div>
@@ -131,33 +173,31 @@ const Navigation = () => {
               </Link>
             ))}
             <div className="pt-3 space-y-2">
-              {isAuthenticated ? (
+              {user ? (
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="w-full text-gray-300 hover:text-cyan-400">
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
                 </Button>
               ) : (
                 <>
-                  <Button variant="ghost" size="sm" onClick={() => setIsAuthModalOpen(true)} className="w-full text-gray-300 hover:text-cyan-400">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
-                  </Button>
-                  <Button size="sm" onClick={() => setIsAuthModalOpen(true)} className="w-full gaming-gradient neon-glow">
-                    <User className="w-4 h-4 mr-2" />
-                    Sign Up
-                  </Button>
+                  <Link to="/auth">
+                    <Button variant="ghost" size="sm" className="w-full text-gray-300 hover:text-cyan-400">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button size="sm" className="w-full gaming-gradient neon-glow">
+                      <User className="w-4 h-4 mr-2" />
+                      Sign Up
+                    </Button>
+                  </Link>
                 </>
               )}
             </div>
           </div>
         )}
       </div>
-      
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)}
-        onAuthSuccess={handleAuthSuccess}
-      />
     </nav>
   );
 };

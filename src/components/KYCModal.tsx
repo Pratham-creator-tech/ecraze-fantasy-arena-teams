@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, Upload, User, FileText, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface KYCModalProps {
   isOpen: boolean;
@@ -30,15 +31,42 @@ const KYCModal = ({ isOpen, onClose, onKYCComplete }: KYCModalProps) => {
     setKycData({ ...kycData, [field]: file });
   };
 
-  const handleSubmitKYC = () => {
-    // Mock KYC completion
-    localStorage.setItem('kycCompleted', 'true');
-    onKYCComplete();
-    onClose();
-    toast({
-      title: "KYC Verification Complete",
-      description: "Your identity has been verified. You can now deposit money and participate in contests.",
-    });
+  const handleSubmitKYC = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Update profile with KYC verification
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          kyc_verified: true,
+          // In a real app, you'd also store KYC data
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        toast({
+          title: "KYC Update Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      onKYCComplete();
+      onClose();
+      toast({
+        title: "KYC Verification Complete",
+        description: "Your identity has been verified. You can now deposit money and participate in contests.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "KYC Verification Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   };
 
   const isStepComplete = (step: number) => {
